@@ -45,14 +45,14 @@ const Home = () => {
         <main className="flex-grow">
           {/* Hero Section */}
           <section className="container mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
-            <div>
+            <div className="animate-fadeInLeft">
               <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-6">
                 Track Your <span className="text-green-500">Carbon Footprint</span>
               </h2>
-              <p className="text-xl text-gray-400 mb-8 max-w-2xl">
+              <p className="text-xl text-gray-400 mb-8 max-w-2xl animate-fadeInUp animate-delay-200">
                 Take control of your environmental impact. Monitor, analyze, and reduce your carbon emissions with our comprehensive tracking platform.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 animate-fadeInUp animate-delay-300">
                 {user ? (
                   <Link 
                     to="/calculate" 
@@ -77,11 +77,11 @@ const Home = () => {
                 </Link>
               </div>
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center animate-fadeInRight">
               <img 
                 src="https://cdn.pixabay.com/photo/2019/04/04/22/35/europe-4103975_1280.png" 
                 alt="Illustration of Earth" 
-                className="w-80 h-80 animate-pulse"
+                className="w-80 h-80 animate-float"
               />
             </div>
           </section>
@@ -89,14 +89,14 @@ const Home = () => {
           {/* Features Section */}
           <section className="bg-gray-900/50 py-20">
             <div className="container mx-auto px-6">
-              <div className="text-center mb-16">
+              <div className="text-center mb-16 animate-fadeInUp">
                 <h2 className="text-4xl font-bold text-white mb-4">Why Choose Ecotrack?</h2>
                 <p className="text-gray-400 text-lg max-w-2xl mx-auto">
                   Our platform makes it easy to understand and reduce your environmental impact
                 </p>
               </div>
               <div className="grid md:grid-cols-3 gap-8">
-                <div className="p-8 rounded-xl shadow-lg bg-gray-900 border border-gray-800 hover:border-green-500/50 transition-all duration-300">
+                <div className="p-8 rounded-xl shadow-lg bg-gray-900 border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover-lift animate-fadeInUp animate-delay-100">
                   <img 
                     src="https://cdn-icons-png.flaticon.com/128/1892/1892751.png" 
                     alt="Tree Doodle" 
@@ -107,7 +107,7 @@ const Home = () => {
                     Learn how your actions contribute to greener living and make environmentally conscious decisions.
                   </p>
                 </div>
-                <div className="p-8 rounded-xl shadow-lg bg-gray-900 border border-gray-800 hover:border-green-500/50 transition-all duration-300">
+                <div className="p-8 rounded-xl shadow-lg bg-gray-900 border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover-lift animate-fadeInUp animate-delay-200">
                   <img 
                     src="https://cdn-icons-png.flaticon.com/128/15439/15439246.png" 
                     alt="Carbon Doodle" 
@@ -118,7 +118,7 @@ const Home = () => {
                     Easily calculate and track your daily carbon footprint with our intuitive tools and analytics.
                   </p>
                 </div>
-                <div className="p-8 rounded-xl shadow-lg bg-gray-900 border border-gray-800 hover:border-green-500/50 transition-all duration-300">
+                <div className="p-8 rounded-xl shadow-lg bg-gray-900 border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover-lift animate-fadeInUp animate-delay-300">
                   <img 
                     src="https://cdn-icons-png.flaticon.com/128/3937/3937245.png" 
                     alt="Recycle Doodle" 

@@ -76,13 +76,13 @@ const Profile = () => {
         <main className="flex-grow container mx-auto px-6 py-8">
           <div className="max-w-2xl mx-auto space-y-8">
             {/* Header */}
-            <div>
+            <div className="animate-fadeInDown">
               <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
               <p className="text-gray-400">Manage your account information</p>
             </div>
 
       {/* Profile Form */}
-      <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 animate-fadeInUp animate-delay-100">
         <h2 className="text-xl font-semibold text-white mb-6">Personal Information</h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -156,7 +156,7 @@ const Profile = () => {
       </div>
 
       {/* Account Stats */}
-      <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+      <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 animate-fadeInUp animate-delay-200">
         <h2 className="text-xl font-semibold text-white mb-6">Account Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -189,7 +189,7 @@ const Profile = () => {
       </div>
 
       {/* Danger Zone */}
-      <div className="bg-gray-900 rounded-lg p-6 border border-red-800">
+      <div className="bg-gray-900 rounded-lg p-6 border border-red-800 animate-fadeInUp animate-delay-300">
         <h2 className="text-xl font-semibold text-red-400 mb-4">Danger Zone</h2>
         <p className="text-gray-400 mb-4">
           Once you delete your account, there is no going back. Please be certain.

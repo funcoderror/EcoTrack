@@ -71,13 +71,13 @@ const Dashboard = () => {
         {/* Main Content */}
         <main className="flex-grow container mx-auto px-6 py-8">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-8 animate-fadeInDown">
             <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
             <p className="text-gray-400">Track your carbon footprint and environmental impact</p>
           </div>    
       {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 hover-lift animate-fadeInUp animate-delay-100">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Total Emissions</p>
@@ -93,7 +93,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 hover-lift animate-fadeInUp animate-delay-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Total Activities</p>
@@ -109,7 +109,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 hover-lift animate-fadeInUp animate-delay-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Average per Activity</p>
@@ -125,7 +125,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 hover-lift animate-fadeInUp animate-delay-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">This Month</p>
@@ -144,7 +144,7 @@ const Dashboard = () => {
    {/* Charts and Recent Activities */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Category Breakdown */}
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 animate-fadeInLeft">
               <h3 className="text-xl font-semibold text-white mb-4">Emissions by Category</h3>
               {stats?.categories && stats.categories.length > 0 ? (
                 <div className="space-y-4">
@@ -173,7 +173,7 @@ const Dashboard = () => {
             </div>
 
             {/* Recent Activities */}
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 animate-fadeInRight">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-white">Recent Activities</h3>
                 <Link 
@@ -213,12 +213,12 @@ const Dashboard = () => {
             </div>
           </div>      
     {/* Quick Actions */}
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 animate-fadeInUp">
             <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link 
                 to="/activities" 
-                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors hover-lift"
               >
                 <div className="bg-green-500/20 p-3 rounded-lg mr-4">
                   <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +233,7 @@ const Dashboard = () => {
 
               <Link 
                 to="/calculate" 
-                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors hover-lift"
               >
                 <div className="bg-blue-500/20 p-3 rounded-lg mr-4">
                   <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,7 +248,7 @@ const Dashboard = () => {
 
               <Link 
                 to="/profile" 
-                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors hover-lift"
               >
                 <div className="bg-purple-500/20 p-3 rounded-lg mr-4">
                   <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
