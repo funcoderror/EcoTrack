@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import activityRoutes from './routes/activities.js';
+import carbonFootprintRoutes from './routes/carbonFootprint.js';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/carbon-footprint', carbonFootprintRoutes);
 
 app.get("/", (_,res) =>{
     res.json({ message: "Server is Live!" })

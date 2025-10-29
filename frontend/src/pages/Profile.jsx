@@ -59,11 +59,12 @@ const Profile = () => {
             </Link>
             <div className="flex items-center space-x-6">
               <Link to="/dashboard" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Dashboard</Link>
+              <Link to="/calculate" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Calculate</Link>
               <Link to="/activities" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Activities</Link>
               <Link to="/profile" className="text-green-500 font-medium">Profile</Link>
               <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-gray-700">
                 <span className="text-sm text-gray-400">Welcome, {user?.first_name}</span>
-                <button onClick={handleLogout} className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button onClick={handleLogout} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">
                   Logout
                 </button>
               </div>

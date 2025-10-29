@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Activities from './pages/Activities';
 import Profile from './pages/Profile';
+import Calculate from './pages/Calculate';
 import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -90,6 +91,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calculate"
+              element={
+                <ProtectedRoute>
+                  <Calculate />
                 </ProtectedRoute>
               }
             />

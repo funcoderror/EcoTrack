@@ -55,11 +55,12 @@ const Dashboard = () => {
             </Link>
             <div className="flex items-center space-x-6">
               <Link to="/dashboard" className="text-green-500 font-medium">Dashboard</Link>
+              <Link to="/calculate" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Calculate</Link>
               <Link to="/activities" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Activities</Link>
               <Link to="/profile" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Profile</Link>
               <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-gray-700">
                 <span className="text-sm text-gray-400">Welcome, {user?.first_name}</span>
-                <button onClick={handleLogout} className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button onClick={handleLogout} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">
                   Logout
                 </button>
               </div>
@@ -231,11 +232,26 @@ const Dashboard = () => {
               </Link>
 
               <Link 
-                to="/profile" 
+                to="/calculate" 
                 className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
               >
                 <div className="bg-blue-500/20 p-3 rounded-lg mr-4">
                   <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white font-medium">Calculate Footprint</p>
+                  <p className="text-gray-400 text-sm">Estimate your CO₂ emissions</p>
+                </div>
+              </Link>
+
+              <Link 
+                to="/profile" 
+                className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <div className="bg-purple-500/20 p-3 rounded-lg mr-4">
+                  <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
@@ -244,18 +260,6 @@ const Dashboard = () => {
                   <p className="text-gray-400 text-sm">Manage your account</p>
                 </div>
               </Link>
-
-              <div className="flex items-center p-4 bg-gray-800 rounded-lg">
-                <div className="bg-purple-500/20 p-3 rounded-lg mr-4">
-                  <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-white font-medium">View Reports</p>
-                  <p className="text-gray-400 text-sm">Coming soon</p>
-                </div>
-              </div>
             </div>
           </div>
         </main>

@@ -4,12 +4,57 @@ import { Link } from 'react-router';
 import { activitiesAPI } from '../services/api';
 
 const Activities = () => {
+  // Add CSS animations
+  const styles = `
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideInFromRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .animate-fadeInUp {
+      animation: fadeInUp 0.3s ease-out forwards;
+    }
+    
+    .animate-slideInFromRight {
+      animation: slideInFromRight 0.3s ease-out forwards;
+    }
+  `;
+
+  // Inject styles
+  if (typeof document !== 'undefined') {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    if (!document.head.querySelector('style[data-activities-styles]')) {
+      styleSheet.setAttribute('data-activities-styles', 'true');
+      document.head.appendChild(styleSheet);
+    }
+  }
   const { user, logout } = useAuth();
   const [activities, setActivities] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     categoryId: '',
     description: '',
@@ -54,36 +99,59 @@ const Activities = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setErrorMessage('');
     
     try {
+      const selectedCategory = categories.find(cat => cat.id == formData.categoryId);
+      
       if (editingActivity) {
-        await activitiesAPI.updateActivity(
+        const response = await activitiesAPI.updateActivity(
           editingActivity.id,
           formData.categoryId,
           formData.description,
           formData.quantity,
           formData.activityDate
         );
+        
+        // Optimistic update
+        setActivities(prev => prev.map(activity => 
+          activity.id === editingActivity.id 
+            ? { ...activity, ...response.data.activity }
+            : activity
+        ));
+        
+        setSuccessMessage('Activity updated successfully!');
       } else {
-        await activitiesAPI.createActivity(
+        const response = await activitiesAPI.createActivity(
           formData.categoryId,
           formData.description,
           formData.quantity,
           formData.activityDate
         );
+        
+        // Optimistic update - add new activity to the beginning of the list
+        const newActivity = {
+          ...response.data.activity,
+          category_name: selectedCategory?.name,
+          unit: selectedCategory?.unit
+        };
+        setActivities(prev => [newActivity, ...prev]);
+        
+        setSuccessMessage('Activity added successfully!');
       }
 
-      setShowAddForm(false);
-      setEditingActivity(null);
-      setFormData({
-        categoryId: '',
-        description: '',
-        quantity: '',
-        activityDate: new Date().toISOString().split('T')[0]
-      });
-      fetchActivities();
+      // Reset form and close modal
+      resetForm();
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+      
     } catch (error) {
       console.error('Failed to save activity:', error);
+      setErrorMessage(error.response?.data?.error || 'Failed to save activity. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -102,16 +170,30 @@ const Activities = () => {
     if (!confirm('Are you sure you want to delete this activity?')) return;
     
     try {
+      // Optimistic update - remove from UI immediately
+      const activityToDelete = activities.find(a => a.id === id);
+      setActivities(prev => prev.filter(activity => activity.id !== id));
+      
       await activitiesAPI.deleteActivity(id);
-      fetchActivities();
+      setSuccessMessage('Activity deleted successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+      
     } catch (error) {
       console.error('Failed to delete activity:', error);
+      // Revert optimistic update on error
+      fetchActivities();
+      setErrorMessage('Failed to delete activity. Please try again.');
+      setTimeout(() => setErrorMessage(''), 3000);
     }
   };
 
   const resetForm = () => {
     setShowAddForm(false);
     setEditingActivity(null);
+    setSubmitting(false);
+    setErrorMessage('');
     setFormData({
       categoryId: '',
       description: '',
@@ -146,11 +228,12 @@ const Activities = () => {
             </Link>
             <div className="flex items-center space-x-6">
               <Link to="/dashboard" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Dashboard</Link>
+              <Link to="/calculate" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Calculate</Link>
               <Link to="/activities" className="text-green-500 font-medium">Activities</Link>
               <Link to="/profile" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Profile</Link>
               <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-gray-700">
                 <span className="text-sm text-gray-400">Welcome, {user?.first_name}</span>
-                <button onClick={handleLogout} className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button onClick={handleLogout} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">
                   Logout
                 </button>
               </div>
@@ -160,21 +243,42 @@ const Activities = () => {
 
         {/* Main Content */}
         <main className="flex-grow container mx-auto px-6 py-8">
+          {/* Success/Error Messages */}
+          {successMessage && (
+            <div className="mb-6 bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded-lg flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {successMessage}
+            </div>
+          )}
+          
+          {errorMessage && (
+            <div className="mb-6 bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {errorMessage}
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Activities</h1>
               <p className="text-gray-400">Track and manage your carbon footprint activities</p>
             </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add Activity
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-all duration-200 transform hover:scale-105 flex items-center gap-2 shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Activity
+              </button>
+            </div>
           </div>
 
       {/* Filters */}
@@ -219,11 +323,29 @@ const Activities = () => {
 
       {/* Add/Edit Form Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md border border-gray-800">
-            <h3 className="text-xl font-semibold text-white mb-4">
-              {editingActivity ? 'Edit Activity' : 'Add New Activity'}
-            </h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md border border-gray-800 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-white">
+                {editingActivity ? 'Edit Activity' : 'Add New Activity'}
+              </h3>
+              <button
+                type="button"
+                onClick={resetForm}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {errorMessage && (
+              <div className="mb-4 bg-red-900/50 border border-red-500 text-red-200 px-3 py-2 rounded text-sm">
+                {errorMessage}
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
@@ -274,14 +396,25 @@ const Activities = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {editingActivity ? 'Update' : 'Add'} Activity
+                  {submitting && (
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {submitting 
+                    ? (editingActivity ? 'Updating...' : 'Adding...') 
+                    : (editingActivity ? 'Update Activity' : 'Add Activity')
+                  }
                 </button>
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
@@ -316,25 +449,36 @@ const Activities = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
-                {activities.map((activity) => (
-                  <tr key={activity.id} className="hover:bg-gray-800">
+                {activities.map((activity, index) => (
+                  <tr 
+                    key={activity.id} 
+                    className="hover:bg-gray-800 transition-colors duration-200"
+                    style={{ 
+                      animation: `fadeInUp 0.3s ease-out ${index * 0.05}s both` 
+                    }}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm font-medium text-white flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           {activity.category_name}
                         </div>
                         {activity.description && (
-                          <div className="text-sm text-gray-400">
+                          <div className="text-sm text-gray-400 ml-4">
                             {activity.description}
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {activity.quantity} {activity.unit}
+                      <span className="bg-gray-800 px-2 py-1 rounded text-xs">
+                        {activity.quantity} {activity.unit}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-400">
-                      {parseFloat(activity.co2_emissions).toFixed(2)} kg
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <span className="text-red-400 bg-red-900/20 px-2 py-1 rounded text-xs">
+                        {parseFloat(activity.co2_emissions).toFixed(2)} kg CO₂
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {new Date(activity.activity_date).toLocaleDateString()}
@@ -343,15 +487,19 @@ const Activities = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(activity)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                          className="text-blue-400 hover:text-blue-300 transition-all duration-200 hover:scale-105 px-2 py-1 rounded hover:bg-blue-900/20"
                         >
-                          Edit
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
                         </button>
                         <button
                           onClick={() => handleDelete(activity.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-red-400 hover:text-red-300 transition-all duration-200 hover:scale-105 px-2 py-1 rounded hover:bg-red-900/20"
                         >
-                          Delete
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     </td>

@@ -87,4 +87,24 @@ export const activitiesAPI = {
     api.get('/api/activities/categories'),
 };
 
+// Carbon Footprint API calls
+export const carbonFootprintAPI = {
+  calculate: (transport, electricity, diet, flights, waste) =>
+    api.post('/api/carbon-footprint/calculate', { transport, electricity, diet, flights, waste }),
+  
+  getHistory: (params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.offset) queryParams.append('offset', params.offset);
+    
+    return api.get(`/api/carbon-footprint/history?${queryParams}`);
+  },
+  
+  getLatest: () =>
+    api.get('/api/carbon-footprint/latest'),
+  
+  deleteCalculation: (id) =>
+    api.delete(`/api/carbon-footprint/${id}`),
+};
+
 export default api;
