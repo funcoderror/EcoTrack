@@ -1,11 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { carbonFootprintAPI } from '../services/api';
+import { Chart, registerables } from 'chart.js';
+
+// Register Chart.js components
+Chart.register(...registerables);
 
 const Calculate = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const chartRef = useRef(null);
+  const chartInstanceRef = useRef(null);
 
   // Add CSS animations
   const styles = `
@@ -64,11 +70,192 @@ const Calculate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Global average data (based on research data)
+  const globalAverages = {
+    transport: 1.8,
+    electricity: 1.2,
+    diet: 2.5,
+    flights: 0.9,
+    waste: 0.6,
+    total: 7.0
+  };
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
     }
   }, [user, navigate]);
+
+  // Create/Update chart when result changes
+  useEffect(() => {
+    if (result && chartRef.current) {
+      // Destroy previous chart instance
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+
+      const ctx = chartRef.current.getContext('2d');
+
+      // Create gradients
+      const globalGradient = ctx.createLinearGradient(0, 0, 0, 400);
+      globalGradient.addColorStop(0, 'rgba(147, 51, 234, 0.8)');
+      globalGradient.addColorStop(1, 'rgba(79, 70, 229, 0.4)');
+
+      const userGradient = ctx.createLinearGradient(0, 0, 0, 400);
+      userGradient.addColorStop(0, 'rgba(34, 197, 94, 0.8)');
+      userGradient.addColorStop(1, 'rgba(16, 185, 129, 0.4)');
+
+      chartInstanceRef.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['🚗 Transport', '⚡ Electricity', '🍽️ Diet', '✈️ Flights', '🗑️ Waste'],
+          datasets: [
+            {
+              label: '🌍 Global Average',
+              data: [
+                globalAverages.transport,
+                globalAverages.electricity,
+                globalAverages.diet,
+                globalAverages.flights,
+                globalAverages.waste
+              ],
+              backgroundColor: globalGradient,
+              borderColor: 'rgb(147, 51, 234)',
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false,
+            },
+            {
+              label: '👤 Your Footprint',
+              data: [
+                result.breakdown.transport,
+                result.breakdown.electricity,
+                result.breakdown.diet,
+                result.breakdown.flights,
+                result.breakdown.waste
+              ],
+              backgroundColor: userGradient,
+              borderColor: 'rgb(34, 197, 94)',
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: '#f3f4f6',
+                font: {
+                  size: 15,
+                  weight: 'bold',
+                  family: "'Inter', sans-serif"
+                },
+                padding: 20,
+                usePointStyle: true,
+                pointStyle: 'rectRounded',
+                boxWidth: 12,
+                boxHeight: 12
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#e5e7eb',
+              borderColor: 'rgba(147, 51, 234, 0.5)',
+              borderWidth: 2,
+              padding: 16,
+              displayColors: true,
+              boxWidth: 12,
+              boxHeight: 12,
+              boxPadding: 6,
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 13
+              },
+              callbacks: {
+                label: function (context) {
+                  const value = context.parsed.y.toFixed(2);
+                  const percentage = ((context.parsed.y / result.totalCO2) * 100).toFixed(1);
+                  return context.dataset.label + ': ' + value + ' tons CO₂ (' + percentage + '%)';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(75, 85, 99, 0.2)',
+                drawBorder: false,
+                lineWidth: 1
+              },
+              border: {
+                display: false
+              },
+              ticks: {
+                color: '#d1d5db',
+                font: {
+                  size: 13,
+                  weight: '500'
+                },
+                padding: 10,
+                callback: function (value) {
+                  return value.toFixed(1) + ' t';
+                }
+              },
+              title: {
+                display: true,
+                text: '💨 CO₂ Emissions (tons/year)',
+                color: '#f3f4f6',
+                font: {
+                  size: 14,
+                  weight: 'bold'
+                },
+                padding: { top: 10, bottom: 10 }
+              }
+            },
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              border: {
+                display: false
+              },
+              ticks: {
+                color: '#d1d5db',
+                font: {
+                  size: 13,
+                  weight: '600'
+                },
+                padding: 10
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+    };
+  }, [result, globalAverages]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -478,6 +665,134 @@ const Calculate = () => {
                         </svg>
                         Calculate Again
                       </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comparison Chart */}
+                <div className="mt-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-purple-500/30 shadow-2xl overflow-hidden animate-fadeInUp">
+                  {/* Chart Header */}
+                  <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/20"></div>
+                    <div className="relative flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
+                          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-3xl font-extrabold text-white mb-1">🌍 Carbon Footprint Comparison</h3>
+                          <p className="text-purple-100 text-sm font-medium">See how your emissions stack up against global averages</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chart Container */}
+                  <div className="p-8 bg-gradient-to-b from-gray-900/50 to-gray-900">
+                    <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20 shadow-inner" style={{ height: '450px' }}>
+                      <canvas ref={chartRef}></canvas>
+                    </div>
+
+                    {/* Insights */}
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <div className="group bg-gradient-to-br from-purple-900/40 to-indigo-900/40 rounded-2xl p-6 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-105">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-purple-500/30 rounded-xl flex items-center justify-center group-hover:bg-purple-500/40 transition-colors shadow-lg">
+                            <svg className="w-6 h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <h4 className="text-white font-bold text-lg">🌍 Global Average</h4>
+                        </div>
+                        <p className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300">{globalAverages.total}</p>
+                        <p className="text-sm text-purple-200 mt-2 font-medium">tons CO₂/year</p>
+                      </div>
+
+                      <div className="group bg-gradient-to-br from-green-900/40 to-emerald-900/40 rounded-2xl p-6 border border-green-500/30 hover:border-green-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20 hover:scale-105">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-green-500/30 rounded-xl flex items-center justify-center group-hover:bg-green-500/40 transition-colors shadow-lg">
+                            <svg className="w-6 h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                          <h4 className="text-white font-bold text-lg">👤 Your Total</h4>
+                        </div>
+                        <p className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-300">{result.totalCO2}</p>
+                        <p className="text-sm text-green-200 mt-2 font-medium">tons CO₂/year</p>
+                      </div>
+
+                      <div className={`group bg-gradient-to-br ${result.totalCO2 < globalAverages.total ? 'from-green-900/40 to-teal-900/40 border-green-500/30 hover:border-green-400/50 hover:shadow-green-500/20' : 'from-orange-900/40 to-red-900/40 border-orange-500/30 hover:border-orange-400/50 hover:shadow-orange-500/20'} rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg hover:scale-105`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`w-12 h-12 ${result.totalCO2 < globalAverages.total ? 'bg-green-500/30 group-hover:bg-green-500/40' : 'bg-orange-500/30 group-hover:bg-orange-500/40'} rounded-xl flex items-center justify-center transition-colors shadow-lg`}>
+                            <svg className={`w-6 h-6 ${result.totalCO2 < globalAverages.total ? 'text-green-300' : 'text-orange-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={result.totalCO2 < globalAverages.total ? "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" : "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"} />
+                            </svg>
+                          </div>
+                          <h4 className="text-white font-bold text-lg">📊 Difference</h4>
+                        </div>
+                        <p className={`text-4xl font-extrabold text-transparent bg-clip-text ${result.totalCO2 < globalAverages.total ? 'bg-gradient-to-r from-green-300 to-teal-300' : 'bg-gradient-to-r from-orange-300 to-red-300'}`}>
+                          {result.totalCO2 < globalAverages.total ? '-' : '+'}{Math.abs(result.totalCO2 - globalAverages.total).toFixed(2)}
+                        </p>
+                        <p className={`text-sm mt-2 font-medium ${result.totalCO2 < globalAverages.total ? 'text-green-200' : 'text-orange-200'}`}>
+                          {result.totalCO2 < globalAverages.total ? '✅ Below' : '⚠️ Above'} average
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="mt-8 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10 border-2 border-emerald-500/30 rounded-2xl p-6 backdrop-blur-sm hover:border-emerald-400/50 transition-all duration-300">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl flex items-center justify-center shadow-lg">
+                          <svg className="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
+                            💡 Personalized Tips to Reduce Your Carbon Footprint
+                          </h4>
+                          <ul className="text-gray-200 text-sm space-y-2.5">
+                            {result.breakdown.transport > globalAverages.transport && (
+                              <li className="flex items-start gap-2 bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
+                                <span className="text-blue-400 font-bold">🚗</span>
+                                <span>Consider carpooling, public transport, or cycling to reduce transport emissions</span>
+                              </li>
+                            )}
+                            {result.breakdown.electricity > globalAverages.electricity && (
+                              <li className="flex items-start gap-2 bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/20">
+                                <span className="text-yellow-400 font-bold">⚡</span>
+                                <span>Switch to LED bulbs and unplug devices when not in use to save electricity</span>
+                              </li>
+                            )}
+                            {result.breakdown.diet > globalAverages.diet && (
+                              <li className="flex items-start gap-2 bg-green-500/10 p-3 rounded-lg border border-green-500/20">
+                                <span className="text-green-400 font-bold">🍽️</span>
+                                <span>Try incorporating more plant-based meals into your diet</span>
+                              </li>
+                            )}
+                            {result.breakdown.flights > globalAverages.flights && (
+                              <li className="flex items-start gap-2 bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">
+                                <span className="text-purple-400 font-bold">✈️</span>
+                                <span>Consider virtual meetings or train travel for shorter distances</span>
+                              </li>
+                            )}
+                            {result.breakdown.waste > globalAverages.waste && (
+                              <li className="flex items-start gap-2 bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                                <span className="text-red-400 font-bold">🗑️</span>
+                                <span>Reduce, reuse, and recycle to minimize waste generation</span>
+                              </li>
+                            )}
+                            {result.totalCO2 <= globalAverages.total && (
+                              <li className="flex items-start gap-2 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">
+                                <span className="text-emerald-400 font-bold">🌟</span>
+                                <span className="font-semibold">Great job! You're below the global average. Keep up the excellent work!</span>
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
