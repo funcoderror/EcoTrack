@@ -3,9 +3,13 @@ import jwt from "jsonwebtoken";
 import sql from "../database/db.js";
 
 export const signup = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, firstName, lastName, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    // Support both formats: name OR firstName+lastName
+    const first = firstName || name || '';
+    const last = lastName || name || '';
+
+    if ((!first && !last) || !email || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -25,7 +29,7 @@ export const signup = async (req, res) => {
 
     try {
         const existingUser =
-            await sql`SELECT user_id FROM users WHERE email = ${email}`;
+            await sql`SELECT id FROM users WHERE email = ${email}`;
         if (existingUser.length > 0) {
             return res.status(400).json({ message: "User already exists" });
         }
@@ -37,14 +41,14 @@ export const signup = async (req, res) => {
         const otpString = otp.toString();
 
         const [newUser] =
-            await sql`INSERT INTO users (name, email, password) 
-                      VALUES (${name}, ${email}, ${hashedPassword})
-                      RETURNING user_id, name, email, otp`;
+            await sql`INSERT INTO users (first_name, last_name, email, password) 
+                      VALUES (${first}, ${last}, ${email}, ${hashedPassword})
+                      RETURNING id, first_name, last_name, email`;
 
         const token = jwt.sign(
             {
-                userId: newUser.user_id,
-                name: newUser.name,
+                userId: newUser.id,
+                name: `${newUser.first_name} ${newUser.last_name}`,
                 email: newUser.email,
             },
             process.env.JWT_SECRET_KEY,
@@ -63,7 +67,11 @@ export const signup = async (req, res) => {
 
         res.status(201).json({
             message: "User created successfully",
-            user: newUser,
+            user: {
+                id: newUser.id,
+                name: `${newUser.first_name} ${newUser.last_name}`,
+                email: newUser.email
+            },
             token
         });
     } catch (error) {
@@ -86,7 +94,7 @@ export const login = async (req, res) => {
 
     try {
         const [user] =
-            await sql`SELECT user_id, name, email, password, user_photo FROM users WHERE email = ${email}`;
+            await sql`SELECT id, first_name, last_name, email, password FROM users WHERE email = ${email}`;
 
         if (!user) {
             return res.status(401).json({ error: "Invalid credentials" });
@@ -98,7 +106,7 @@ export const login = async (req, res) => {
             return res.status(401).json({ error: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET_KEY, {
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET_KEY, {
             expiresIn: "7d",
         });
 
@@ -111,8 +119,8 @@ export const login = async (req, res) => {
         });
 
         const userResponse = {
-            user_id: user.user_id,
-            name: user.name,
+            id: user.id,
+            name: `${user.first_name} ${user.last_name}`,
             email: user.email,
         };
 
