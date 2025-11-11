@@ -132,7 +132,7 @@ const Calculate = () => {
             <div className="flex items-center space-x-6">
               <Link to="/dashboard" className="text-gray-300 font-medium hover:text-white">Dashboard</Link>
               <Link to="/calculate" className="text-green-500 font-medium hover:text-green-400">Calculate</Link>
-              <Link to="/activities" className="text-gray-300 font-medium hover:text-white">Activities</Link>
+              <Link to="/goals" className="text-gray-300 font-medium hover:text-white">Goals</Link>
               <Link to="/profile" className="text-gray-300 font-medium hover:text-white">Profile</Link>
               <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-gray-700">
                 <span className="text-sm text-gray-400">Welcome, {user?.first_name}</span>
@@ -461,13 +461,13 @@ const Calculate = () => {
                   <div className="p-8 bg-gray-900/50 border-t border-gray-700">
                     <div className="flex flex-col sm:flex-row gap-4">
                       <Link
-                        to="/activities"
+                        to="/goals"
                         className="flex-1 text-center px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-green-500/50 flex items-center justify-center gap-2"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
-                        Track Activities
+                        Track Goals
                       </Link>
                       <button
                         onClick={() => setResult(null)}

@@ -338,7 +338,7 @@ const Home = () => {
                   {user ? (
                     <>
                       <li><Link to="/dashboard" className="text-gray-400 hover:text-green-500 transition-colors">Dashboard</Link></li>
-                      <li><Link to="/activities" className="text-gray-400 hover:text-green-500 transition-colors">Activities</Link></li>
+                      <li><Link to="/goals" className="text-gray-400 hover:text-green-500 transition-colors">Goals</Link></li>
                       <li><Link to="/profile" className="text-gray-400 hover:text-green-500 transition-colors">Profile</Link></li>
                     </>
                   ) : (

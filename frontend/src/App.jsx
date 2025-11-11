@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import Activities from './pages/Activities';
+import Goals from './pages/Goals';
 import Profile from './pages/Profile';
 import Calculate from './pages/Calculate';
 import Home from './pages/Home';
@@ -79,10 +79,10 @@ function App() {
               }
             />
             <Route
-              path="/activities"
+              path="/goals"
               element={
                 <ProtectedRoute>
-                  <Activities />
+                  <Goals />
                 </ProtectedRoute>
               }
             />

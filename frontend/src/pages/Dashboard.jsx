@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router';
-import { usersAPI, activitiesAPI } from '../services/api';
+import { usersAPI, goalsAPI } from '../services/api';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState(null);
-  const [recentActivities, setRecentActivities] = useState([]);
+  const [recentGoals, setRecentGoals] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,9 +19,9 @@ const Dashboard = () => {
       const statsResponse = await usersAPI.getStats();
       setStats(statsResponse.data);
 
-      // Fetch recent activities
-      const activitiesResponse = await activitiesAPI.getActivities({ limit: 5 });
-      setRecentActivities(activitiesResponse.data.activities);
+      // Fetch recent goals
+      const goalsResponse = await goalsAPI.getGoals({ limit: 5 });
+      setRecentGoals(goalsResponse.data.goals);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -56,7 +56,7 @@ const Dashboard = () => {
             <div className="flex items-center space-x-6">
               <Link to="/dashboard" className="text-green-500 font-medium">Dashboard</Link>
               <Link to="/calculate" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Calculate</Link>
-              <Link to="/activities" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Activities</Link>
+              <Link to="/goals" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Goals</Link>
               <Link to="/profile" className="text-gray-300 font-medium hover:text-white hover:scale-105 transition-all duration-300">Profile</Link>
               <div className="flex items-center space-x-4 ml-6 pl-6 border-l border-gray-700">
                 <span className="text-sm text-gray-400">Welcome, {user?.first_name}</span>
@@ -96,7 +96,7 @@ const Dashboard = () => {
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 hover-lift animate-fadeInUp animate-delay-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Total Activities</p>
+                  <p className="text-gray-400 text-sm">Total Goals</p>
                   <p className="text-2xl font-bold text-white">
                     {stats?.overall?.total_activities || 0}
                   </p>
@@ -112,7 +112,7 @@ const Dashboard = () => {
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 hover-lift animate-fadeInUp animate-delay-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Average per Activity</p>
+                  <p className="text-gray-400 text-sm">Average per Goal</p>
                   <p className="text-2xl font-bold text-white">
                     {stats?.overall?.avg_emissions ? `${parseFloat(stats.overall.avg_emissions).toFixed(2)} kg` : '0 kg'}
                   </p>
@@ -168,45 +168,45 @@ const Dashboard = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-400">No data available. Start tracking your activities!</p>
+                <p className="text-gray-400">No data available. Start tracking your goals!</p>
               )}
             </div>
 
-            {/* Recent Activities */}
+            {/* Recent Goals */}
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 animate-fadeInRight">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-white">Recent Activities</h3>
+                <h3 className="text-xl font-semibold text-white">Recent Goals</h3>
                 <Link 
-                  to="/activities" 
+                  to="/goals" 
                   className="text-green-500 hover:text-green-400 text-sm transition-colors"
                 >
                   View All
                 </Link>
               </div>
-              {recentActivities.length > 0 ? (
+              {recentGoals.length > 0 ? (
                 <div className="space-y-3">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                  {recentGoals.map((goal) => (
+                    <div key={goal.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                       <div>
-                        <p className="text-white font-medium">{activity.category_name}</p>
+                        <p className="text-white font-medium">{goal.category_name}</p>
                         <p className="text-gray-400 text-sm">
-                          {activity.quantity} {activity.unit} • {new Date(activity.activity_date).toLocaleDateString()}
+                          {goal.quantity} {goal.unit} • {new Date(goal.activity_date).toLocaleDateString()}
                         </p>
                       </div>
                       <span className="text-red-400 font-medium">
-                        {parseFloat(activity.co2_emissions).toFixed(2)} kg CO₂
+                        {parseFloat(goal.co2_emissions).toFixed(2)} kg CO₂
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">No activities recorded yet</p>
+                  <p className="text-gray-400 mb-4">No goals recorded yet</p>
                   <Link 
-                    to="/activities" 
+                    to="/goals" 
                     className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                   >
-                    Add Your First Activity
+                    Add Your First Goal
                   </Link>
                 </div>
               )}
@@ -217,7 +217,7 @@ const Dashboard = () => {
             <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link 
-                to="/activities" 
+                to="/goals" 
                 className="flex items-center p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors hover-lift"
               >
                 <div className="bg-green-500/20 p-3 rounded-lg mr-4">
@@ -226,7 +226,7 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-white font-medium">Add Activity</p>
+                  <p className="text-white font-medium">Add Goal</p>
                   <p className="text-gray-400 text-sm">Track new carbon emissions</p>
                 </div>
               </Link>

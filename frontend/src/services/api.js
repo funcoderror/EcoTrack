@@ -77,9 +77,9 @@ export const usersAPI = {
     api.get('/api/users/stats'),
 };
 
-// Activities API calls
-export const activitiesAPI = {
-  getActivities: (params = {}) => {
+// Goals API calls
+export const goalsAPI = {
+  getGoals: (params = {}) => {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page);
     if (params.limit) queryParams.append('limit', params.limit);
@@ -87,20 +87,20 @@ export const activitiesAPI = {
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
     
-    return api.get(`/api/activities?${queryParams}`);
+    return api.get(`/api/goals?${queryParams}`);
   },
   
-  createActivity: (categoryId, description, quantity, activityDate) => 
-    api.post('/api/activities', { categoryId, description, quantity, activityDate }),
+  createGoal: (categoryId, description, quantity, activityDate) => 
+    api.post('/api/goals', { categoryId, description, quantity, activityDate }),
   
-  updateActivity: (id, categoryId, description, quantity, activityDate) => 
-    api.put(`/api/activities/${id}`, { categoryId, description, quantity, activityDate }),
+  updateGoal: (id, categoryId, description, quantity, activityDate) => 
+    api.put(`/api/goals/${id}`, { categoryId, description, quantity, activityDate }),
   
-  deleteActivity: (id) => 
-    api.delete(`/api/activities/${id}`),
+  deleteGoal: (id) => 
+    api.delete(`/api/goals/${id}`),
   
   getCategories: () => 
-    api.get('/api/activities/categories'),
+    api.get('/api/goals/categories'),
 };
 
 // Carbon Footprint API calls

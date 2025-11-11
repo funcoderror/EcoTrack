@@ -4,7 +4,7 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all activity categories
+// Get all goal categories
 router.get('/categories', authenticateToken, async (req, res) => {
   try {
     const categories = await sql`
@@ -20,16 +20,16 @@ router.get('/categories', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user activities
+// Get user goals
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { page = 1, limit = 10, category, startDate, endDate } = req.query;
     const offset = (page - 1) * limit;
 
-    let activities, totalCount;
+    let goals, totalCount;
 
     if (category && startDate && endDate) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -51,7 +51,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.category_id = ${category} AND a.activity_date >= ${startDate} AND a.activity_date <= ${endDate}
       `;
     } else if (category && startDate) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -73,7 +73,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.category_id = ${category} AND a.activity_date >= ${startDate}
       `;
     } else if (category && endDate) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -95,7 +95,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.category_id = ${category} AND a.activity_date <= ${endDate}
       `;
     } else if (category) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -117,7 +117,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.category_id = ${category}
       `;
     } else if (startDate && endDate) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -139,7 +139,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.activity_date >= ${startDate} AND a.activity_date <= ${endDate}
       `;
     } else if (startDate) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -161,7 +161,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.activity_date >= ${startDate}
       `;
     } else if (endDate) {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -183,7 +183,7 @@ router.get('/', authenticateToken, async (req, res) => {
         WHERE a.user_id = ${req.user.id} AND a.activity_date <= ${endDate}
       `;
     } else {
-      activities = await sql`
+      goals = await sql`
         SELECT 
           a.id,
           a.description,
@@ -207,7 +207,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 
     res.json({
-      activities,
+      goals,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -216,12 +216,12 @@ router.get('/', authenticateToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get activities error:', error);
-    res.status(500).json({ error: 'Failed to get activities' });
+    console.error('Get goals error:', error);
+    res.status(500).json({ error: 'Failed to get goals' });
   }
 });
 
-// Create new activity
+// Create new goal
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { categoryId, description, quantity, activityDate } = req.body;
@@ -241,35 +241,35 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const co2Emissions = parseFloat(quantity) * parseFloat(category[0].emission_factor);
 
-    const newActivity = await sql`
+    const newGoal = await sql`
       INSERT INTO activities (user_id, category_id, description, quantity, co2_emissions, activity_date)
       VALUES (${req.user.id}, ${categoryId}, ${description || ''}, ${quantity}, ${co2Emissions}, ${activityDate})
       RETURNING id, description, quantity, co2_emissions, activity_date, created_at
     `;
 
     res.status(201).json({
-      message: 'Activity created successfully',
-      activity: newActivity[0]
+      message: 'Goal created successfully',
+      goal: newGoal[0]
     });
   } catch (error) {
-    console.error('Create activity error:', error);
-    res.status(500).json({ error: 'Failed to create activity' });
+    console.error('Create goal error:', error);
+    res.status(500).json({ error: 'Failed to create goal' });
   }
 });
 
-// Update activity
+// Update goal
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { categoryId, description, quantity, activityDate } = req.body;
 
-    // Check if activity belongs to user
-    const existingActivity = await sql`
+    // Check if goal belongs to user
+    const existingGoal = await sql`
       SELECT id FROM activities WHERE id = ${id} AND user_id = ${req.user.id}
     `;
 
-    if (existingActivity.length === 0) {
-      return res.status(404).json({ error: 'Activity not found' });
+    if (existingGoal.length === 0) {
+      return res.status(404).json({ error: 'Goal not found' });
     }
 
     // Get category emission factor if category is being updated
@@ -281,7 +281,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       co2Emissions = parseFloat(quantity) * parseFloat(category[0].emission_factor);
     }
 
-    const updatedActivity = await sql`
+    const updatedGoal = await sql`
       UPDATE activities 
       SET 
         category_id = COALESCE(${categoryId}, category_id),
@@ -295,34 +295,34 @@ router.put('/:id', authenticateToken, async (req, res) => {
     `;
 
     res.json({
-      message: 'Activity updated successfully',
-      activity: updatedActivity[0]
+      message: 'Goal updated successfully',
+      goal: updatedGoal[0]
     });
   } catch (error) {
-    console.error('Update activity error:', error);
-    res.status(500).json({ error: 'Failed to update activity' });
+    console.error('Update goal error:', error);
+    res.status(500).json({ error: 'Failed to update goal' });
   }
 });
 
-// Delete activity
+// Delete goal
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedActivity = await sql`
+    const deletedGoal = await sql`
       DELETE FROM activities 
       WHERE id = ${id} AND user_id = ${req.user.id}
       RETURNING id
     `;
 
-    if (deletedActivity.length === 0) {
-      return res.status(404).json({ error: 'Activity not found' });
+    if (deletedGoal.length === 0) {
+      return res.status(404).json({ error: 'Goal not found' });
     }
 
-    res.json({ message: 'Activity deleted successfully' });
+    res.json({ message: 'Goal deleted successfully' });
   } catch (error) {
-    console.error('Delete activity error:', error);
-    res.status(500).json({ error: 'Failed to delete activity' });
+    console.error('Delete goal error:', error);
+    res.status(500).json({ error: 'Failed to delete goal' });
   }
 });
 
