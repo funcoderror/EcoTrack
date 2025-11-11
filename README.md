@@ -4,8 +4,10 @@ A full-stack web application for tracking and managing personal carbon footprint
 
 ## Features
 
-- **User Authentication**: Secure registration and login system
+- **Public Landing Page**: Accessible homepage with information about the platform (no login required)
+- **User Authentication**: Secure registration and login system with JWT tokens
 - **Activity Tracking**: Log various activities that contribute to carbon emissions
+- **Carbon Footprint Calculator**: Calculate your environmental impact based on lifestyle choices
 - **Dashboard Analytics**: Visualize your carbon footprint with charts and statistics
 - **Category Management**: Pre-defined categories for different types of activities
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -122,26 +124,39 @@ A full-stack web application for tracking and managing personal carbon footprint
 8. **Access the Application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:3001
+   - Landing Page: http://localhost:5173/ (accessible without login)
+   - Login: http://localhost:5173/login
+   - Register: http://localhost:5173/register
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register` - Register new user
+### Authentication (Public)
+- `POST /api/auth/signup` - Register new user
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user
 
-### Users
+### Authentication (Protected)
+- `GET /api/auth/me` - Get current authenticated user
+
+### Users (Protected)
 - `GET /api/users/profile` - Get user profile
 - `PUT /api/users/profile` - Update user profile
 - `GET /api/users/stats` - Get user statistics
 
-### Activities
+### Activities (Protected)
 - `GET /api/activities` - Get user activities (with pagination and filters)
 - `POST /api/activities` - Create new activity
 - `PUT /api/activities/:id` - Update activity
 - `DELETE /api/activities/:id` - Delete activity
 - `GET /api/activities/categories` - Get all activity categories
+
+### Carbon Footprint (Protected)
+- `POST /api/carbon-footprint/calculate` - Calculate carbon footprint
+- `GET /api/carbon-footprint/history` - Get calculation history
+- `GET /api/carbon-footprint/latest` - Get latest calculation
+- `DELETE /api/carbon-footprint/:id` - Delete calculation
+
+> **Note:** All protected endpoints require a valid JWT token in cookies or Authorization header.
 
 ## Database Schema
 
@@ -195,13 +210,32 @@ The application comes with pre-configured activity categories:
    - General Waste (0.5 kg CO2/kg)
    - Recycling (0.1 kg CO2/kg)
 
+## Application Routes
+
+### Public Routes (No Login Required)
+- `/` - Landing page with platform information and features
+- `/about` - About page with mission and values
+- `/contact` - Contact information and support
+- `/login` - User login page
+- `/register` - New user registration page
+
+### Protected Routes (Login Required)
+- `/dashboard` - Main dashboard with analytics and statistics
+- `/activities` - Activity tracking and management
+- `/calculate` - Carbon footprint calculator
+- `/profile` - User profile management
+
+> **Note:** If you're already logged in and try to access `/login` or `/register`, you'll be automatically redirected to the dashboard. The landing page (`/`) is always accessible regardless of authentication status.
+
 ## Usage
 
-1. **Register/Login**: Create an account or sign in
-2. **Add Activities**: Log your daily activities that contribute to carbon emissions
-3. **View Dashboard**: Monitor your carbon footprint with visual analytics
-4. **Track Progress**: See your emissions over time and by category
-5. **Manage Profile**: Update your personal information
+1. **Visit Landing Page**: Browse the public landing page to learn about Ecotrack
+2. **Register/Login**: Create an account or sign in to access tracking features
+3. **Calculate Footprint**: Use the calculator to assess your carbon impact
+4. **Add Activities**: Log your daily activities that contribute to carbon emissions
+5. **View Dashboard**: Monitor your carbon footprint with visual analytics
+6. **Track Progress**: See your emissions over time and by category
+7. **Manage Profile**: Update your personal information
 
 ## API Service Layer
 
@@ -281,6 +315,50 @@ Frontend:
 ## License
 
 This project is licensed under the ISC License.
+
+## Security Features
+
+### JWT Authentication
+- **HTTP-only Cookies**: Tokens stored in secure, HTTP-only cookies
+- **7-Day Expiration**: Automatic token expiration for security
+- **Environment-Aware**: Different cookie settings for development and production
+- **Token Verification**: Middleware validates tokens on every protected request
+
+### Password Security
+- **Bcrypt Hashing**: Passwords hashed with 10 rounds
+- **Strong Requirements**: Minimum 8 characters with uppercase, lowercase, number, and special character
+- **Never Exposed**: Passwords never returned in API responses
+
+### API Security
+- **CORS Protection**: Configured allowed origins
+- **Input Validation**: All inputs validated before processing
+- **SQL Injection Prevention**: Parameterized queries
+- **Error Handling**: Secure error messages without sensitive data
+
+## Documentation
+
+- **[QUICK_START.md](QUICK_START.md)** - Quick setup guide for local development
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Comprehensive deployment guide for production
+- **[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
+- **[CHANGES_SUMMARY.md](CHANGES_SUMMARY.md)** - Recent changes and improvements
+
+## Deployment
+
+The application is configured for deployment on Vercel:
+
+### Backend Deployment
+```bash
+cd backend
+vercel --prod
+```
+
+### Frontend Deployment
+```bash
+cd frontend
+vercel --prod
+```
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Support
 

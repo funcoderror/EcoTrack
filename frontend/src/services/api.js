@@ -9,10 +9,17 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for debugging
+// Request interceptor to add token to headers if available
 api.interceptors.request.use(
   (config) => {
     console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
+    
+    // Get token from localStorage as backup (for cases where cookies don't work)
+    const token = localStorage.getItem('token');
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     return config;
   },
   (error) => {
@@ -23,12 +30,21 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    // Store token if returned in response (backup mechanism)
+    if (response.data?.token) {
+      localStorage.setItem('token', response.data.token);
+    }
     return response;
   },
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      console.log('Unauthorized access - redirecting to login');
+      console.log('Unauthorized access - clearing token and redirecting to login');
+      localStorage.removeItem('token');
+      // Only redirect if not already on login/register page
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

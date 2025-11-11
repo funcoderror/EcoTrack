@@ -53,11 +53,11 @@ export const signup = async (req, res) => {
             }
         );
 
-        res.cookie("jwt", token, {
+        res.cookie("token", token, {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true,
-            sameSite: "none",
-            secure: true,
+            sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+            secure: process.env.NODE_ENV === 'production',
             path: "/",
         });
 
@@ -76,7 +76,7 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email?.trim() || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
+        return res.status(400).json({ error: "Email and password are required" });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -89,24 +89,24 @@ export const login = async (req, res) => {
             await sql`SELECT user_id, name, email, password, user_photo FROM users WHERE email = ${email}`;
 
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
 
         const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET_KEY, {
             expiresIn: "7d",
         });
 
-        res.cookie("jwt", token, {
+        res.cookie("token", token, {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true, 
-            sameSite: "none", 
-            secure: true,
+            sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+            secure: process.env.NODE_ENV === 'production',
             path: "/",
         });
 
@@ -123,6 +123,21 @@ export const login = async (req, res) => {
         });
     } catch (error) {
         console.error("Error during login:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const logout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+            secure: process.env.NODE_ENV === 'production',
+            path: "/",
+        });
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        console.error("Error during logout:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 };

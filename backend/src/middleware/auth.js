@@ -11,12 +11,21 @@ export const authenticateToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     
-    // Verify user still exists
-    const user = await sql`
-      SELECT id, email, first_name, last_name 
+    // Verify user still exists - check both possible column names
+    let user = await sql`
+      SELECT user_id as id, email, name, user_photo 
       FROM users 
-      WHERE id = ${decoded.userId}
+      WHERE user_id = ${decoded.userId}
     `;
+
+    // Fallback to old schema if exists
+    if (user.length === 0) {
+      user = await sql`
+        SELECT id, email, first_name, last_name 
+        FROM users 
+        WHERE id = ${decoded.userId}
+      `;
+    }
 
     if (user.length === 0) {
       return res.status(401).json({ error: 'User not found' });
@@ -31,6 +40,7 @@ export const authenticateToken = async (req, res, next) => {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ error: 'Token expired' });
     }
+    console.error('Authentication error:', error);
     return res.status(500).json({ error: 'Authentication failed' });
   }
 };
